@@ -14,7 +14,7 @@ def notify_desktop(slots: list[dict]):
         by_campground.setdefault(name, []).append(slot)
 
     campground_names = ", ".join(by_campground.keys())
-    body = f"{len(slots)} new site(s) at {campground_names}"
+    body = f"{len(slots)} new site(s) at {campground_names}. Check email for details."
 
     # Truncate for osascript (notification body limit)
     if len(body) > 200:
