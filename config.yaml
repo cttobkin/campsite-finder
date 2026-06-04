@@ -1,0 +1,29 @@
+campgrounds:
+  - id: "232493"
+    name: "Fish Creek"
+  - id: "258795"
+    name: "Sprague Creek"
+  - id: "258796"
+    name: "Avalanche"
+
+# Specific dates to watch (YYYY-MM-DD)
+dates:
+  - "2026-06-19"
+  - "2026-06-20"
+  - "2026-07-01"
+  - "2026-07-02"
+  - "2026-07-03"
+  - "2026-07-24"
+  - "2026-07-25"
+  - "2026-07-31"
+  - "2026-08-01"
+  - "2026-08-07"
+  - "2026-08-08"
+
+check_interval_minutes: 60
+
+notifications:
+  desktop: true
+  email:
+    enabled: true
+    to: "carolyn.tobkin@gmail.com"
