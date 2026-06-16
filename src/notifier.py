@@ -3,10 +3,19 @@
 import os
 import subprocess
 from datetime import datetime
+from typing import Optional
 
 
-def notify_desktop(slots: list[dict]):
-    """Send a macOS desktop notification summarizing new availability."""
+def notify_desktop(slots: list[dict], new_count: Optional[int] = None):
+    """Send a macOS desktop notification summarizing new availability.
+
+    ``slots`` is every currently-available slot (shown for context). ``new_count``
+    is how many of those are newly seen; it drives the count in the message and
+    defaults to ``len(slots)`` when not provided.
+    """
+    if new_count is None:
+        new_count = len(slots)
+
     # Group by campground
     by_campground = {}
     for slot in slots:
@@ -14,7 +23,7 @@ def notify_desktop(slots: list[dict]):
         by_campground.setdefault(name, []).append(slot)
 
     campground_names = ", ".join(by_campground.keys())
-    body = f"{len(slots)} new site(s) at {campground_names}. Check email for details."
+    body = f"{new_count} new site(s) at {campground_names}. Check email for details."
 
     # Truncate for osascript (notification body limit)
     if len(body) > 200:
@@ -31,14 +40,22 @@ def notify_desktop(slots: list[dict]):
     subprocess.run(["osascript", "-e", cmd], capture_output=True)
 
 
-def notify_email(slots: list[dict], to_address: str):
-    """Send an email via Resend with availability details."""
+def notify_email(slots: list[dict], to_address: str, new_count: Optional[int] = None):
+    """Send an email via Resend with availability details.
+
+    ``slots`` is every currently-available slot (listed in the body). ``new_count``
+    is how many of those are newly seen; it drives the subject count and defaults
+    to ``len(slots)`` when not provided.
+    """
     import resend
+
+    if new_count is None:
+        new_count = len(slots)
 
     resend.api_key = os.environ["RESEND_API_KEY"]
 
     body = _format_email_body(slots)
-    subject = f"🏕 {len(slots)} new campsite(s) available!"
+    subject = f"🏕 {new_count} new campsite(s) available!"
 
     resend.Emails.send({
         "from": "Campsite Finder <onboarding@resend.dev>",

@@ -5,9 +5,14 @@ import time
 import traceback
 
 import schedule
+from dotenv import load_dotenv
 
 from src.checker import run_check
 from src.config import load_config
+
+# Load secrets (e.g. RESEND_API_KEY) from a local .env so the checker can run
+# unattended without sourcing the user's shell profile.
+load_dotenv()
 
 
 def safe_run_check(config: dict):

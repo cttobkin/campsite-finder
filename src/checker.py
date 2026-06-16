@@ -47,20 +47,20 @@ def run_check(config: dict):
     if new_slots:
         save_seen(seen)
 
-    # Step 4: Notify
+    # Step 4: Notify — trigger on new slots, but include ALL available in the message
     if new_slots:
         notif = config["notifications"]
 
         if notif.get("desktop"):
             try:
-                notify_desktop(new_slots)
+                notify_desktop(all_slots, new_count=len(new_slots))
             except Exception as e:
                 print(f"  [!] Desktop notification failed: {e}")
 
         email_config = notif.get("email", {})
         if email_config.get("enabled"):
             try:
-                notify_email(new_slots, email_config["to"])
+                notify_email(all_slots, email_config["to"], new_count=len(new_slots))
             except Exception as e:
                 print(f"  [!] Email notification failed: {e}")
 
