@@ -10,10 +10,10 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-Set your [Resend](https://resend.com) API key:
+Set your [Resend](https://resend.com) API key in a `.env` file in the project root (gitignored, loaded automatically at startup):
 
 ```bash
-export RESEND_API_KEY=re_your_key_here
+echo "RESEND_API_KEY=re_your_key_here" > .env
 ```
 
 ## Configure
