@@ -3,24 +3,24 @@
 import os
 import subprocess
 from datetime import datetime
+from typing import Optional
 
 
-def notify_desktop(slots: list[dict]):
+def notify_desktop(slots: list[dict], new_count: Optional[int] = None):
     """Send a macOS desktop notification summarizing new availability."""
-    # Group by campground
+    if new_count is None:
+        new_count = len(slots)
+
     by_campground = {}
     for slot in slots:
-        name = slot["campground_name"]
-        by_campground.setdefault(name, []).append(slot)
+        by_campground.setdefault(slot["campground_name"], []).append(slot)
 
     campground_names = ", ".join(by_campground.keys())
-    body = f"{len(slots)} new site(s) at {campground_names}. Check email for details."
+    body = f"{new_count} new site(s) at {campground_names}. Check email for details."
 
-    # Truncate for osascript (notification body limit)
     if len(body) > 200:
         body = body[:197] + "..."
 
-    # Escape double quotes for AppleScript
     body = body.replace('"', '\\"')
 
     cmd = (
@@ -31,14 +31,22 @@ def notify_desktop(slots: list[dict]):
     subprocess.run(["osascript", "-e", cmd], capture_output=True)
 
 
-def notify_email(slots: list[dict], to_address: str):
-    """Send an email via Resend with availability details."""
+def notify_email(
+    slots: list[dict],
+    to_address: str,
+    new_keys: Optional[set[str]] = None,
+):
+    """Send a plain-text email via Resend. New sites get a 🆕 marker."""
     import resend
+
+    if new_keys is None:
+        new_keys = set()
 
     resend.api_key = os.environ["RESEND_API_KEY"]
 
-    body = _format_email_body(slots)
-    subject = f"🏕 {len(slots)} new campsite(s) available!"
+    new_count = len(new_keys) if new_keys else len(slots)
+    body = _format_email_body(slots, new_keys)
+    subject = f"🏕 {new_count} new campsite(s) available!"
 
     resend.Emails.send({
         "from": "Campsite Finder <onboarding@resend.dev>",
@@ -48,9 +56,8 @@ def notify_email(slots: list[dict], to_address: str):
     })
 
 
-def _format_email_body(slots: list[dict]) -> str:
+def _format_email_body(slots: list[dict], new_keys: set[str]) -> str:
     """Format slots into a readable email body grouped by campground."""
-    # Group by campground
     by_campground = {}
     for slot in slots:
         name = slot["campground_name"]
@@ -67,7 +74,10 @@ def _format_email_body(slots: list[dict]) -> str:
             site_name = slot["site_name"]
             loop = slot.get("loop", "")
             loop_str = f" ({loop})" if loop else ""
-            lines.append(f"  Site {site_name}{loop_str} — {date_str}")
+
+            key = f"{slot['campground_id']}:{slot['site_id']}:{slot['date']}"
+            prefix = "🆕 " if key in new_keys else "  "
+            lines.append(f"{prefix}Site {site_name}{loop_str} — {date_str}")
         lines.append(f"  Book: https://www.recreation.gov/camping/campgrounds/{cg_id}")
         lines.append("")
 
