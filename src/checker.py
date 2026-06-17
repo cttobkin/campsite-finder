@@ -49,6 +49,9 @@ def run_check(config: dict):
 
     # Step 4: Notify — trigger on new slots, but include ALL available in the message
     if new_slots:
+        new_keys = {
+            f"{s['campground_id']}:{s['site_id']}:{s['date']}" for s in new_slots
+        }
         notif = config["notifications"]
 
         if notif.get("desktop"):
@@ -60,7 +63,7 @@ def run_check(config: dict):
         email_config = notif.get("email", {})
         if email_config.get("enabled"):
             try:
-                notify_email(all_slots, email_config["to"], new_count=len(new_slots))
+                notify_email(all_slots, email_config["to"], new_keys=new_keys)
             except Exception as e:
                 print(f"  [!] Email notification failed: {e}")
 
@@ -90,6 +93,7 @@ def _fetch_and_filter(
         return []
 
     campsites = data.get("campsites") or {}
+    exclude_loops = set(campground.get("exclude_loops", []))
     slots = []
 
     for site_id, site_info in campsites.items():
@@ -98,6 +102,10 @@ def _fetch_and_filter(
 
         site_name = site_info.get("site", "?")
         loop = site_info.get("loop", "")
+
+        if loop in exclude_loops:
+            continue
+
         availabilities = site_info.get("availabilities") or {}
 
         for date_str, status in availabilities.items():

@@ -1,6 +1,10 @@
 campgrounds:
   - id: "232493"
     name: "Fish Creek"
+    exclude_loops:
+      - "Loop A"
+      - "Loop B"
+      - "Loop D"
   - id: "258795"
     name: "Sprague Creek"
   - id: "258796"
