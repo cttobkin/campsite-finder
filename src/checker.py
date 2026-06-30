@@ -94,6 +94,7 @@ def _fetch_and_filter(
 
     campsites = data.get("campsites") or {}
     exclude_loops = set(campground.get("exclude_loops", []))
+    include_loops = set(campground.get("include_loops", []))
     slots = []
 
     for site_id, site_info in campsites.items():
@@ -102,6 +103,9 @@ def _fetch_and_filter(
 
         site_name = site_info.get("site", "?")
         loop = site_info.get("loop", "")
+
+        if include_loops and loop not in include_loops:
+            continue
 
         if loop in exclude_loops:
             continue
